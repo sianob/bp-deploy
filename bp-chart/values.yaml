@@ -1,0 +1,10 @@
+namespace: bp-dev
+image:
+  backend: salob79/bp-backend:latest
+  frontend: salob79/bp-frontend:latest
+  mongo: mongo:7
+
+host: bp.local
+
+mongo:
+  pvcSize: 1Gi

@@ -1,0 +1,48 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: bp-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network  
+
+  backend:
+    image: salob79/bp-backend:latest
+    container_name: bp-backend
+    expose:
+      - "8080" # Expose the backend port to the internal Docker network
+    depends_on:
+      - mongo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/bp
+    networks:
+      - app-network
+
+  frontend:
+    image: salob79/bp-frontend:latest
+    container_name: bp-frontend
+    ports:
+      - "8080:80" # Expose Nginx on port 8080
+    volumes:
+    - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: /api # Ensure the frontend uses /api for backend requests
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
