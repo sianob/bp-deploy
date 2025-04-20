@@ -1,0 +1,41 @@
+name: Deploy to AKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
+
+jobs:
+  deploy:
+    name: Deploy ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Write kubeconfig from secret
+        run: |
+          echo "${{ secrets[format('KUBECONFIG_{0}', github.event.inputs.environment) | upper] }}" > kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
+
+      - name: Verify Kube Context
+        run: kubectl config get-contexts
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install bp-app ./helm \
+            -f helm/values-${{ github.event.inputs.environment }}.yaml \
+            --namespace bp \
+            --create-namespace

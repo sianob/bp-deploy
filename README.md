@@ -85,10 +85,10 @@ This folder contains a Helm chart that templates all resources and supports mult
 - `values-prod.yaml` – Prod-specific overrides (e.g., namespace `bp-prod`)
 - `templates/` – Kubernetes manifests as templates
 
-### 🧪 Install for Dev
+### 🧪 Install for Staging
 
 ```bash
-helm install bp-dev ./bp-chart -f bp-chart/values-dev.yaml --namespace bp-dev --create-namespace
+helm install bp-dev ./bp-chart -f bp-chart/values-staging.yaml --namespace bp --create-namespace
 ```
 
 ### 🚢 Install for Prod (AKS)
@@ -100,7 +100,7 @@ export KUBECONFIG=~/.kube/aks-config
 ```
 
 ```bash
-helm install bp-prod ./bp-chart -f bp-chart/values-prod.yaml --namespace bp-prod --create-namespace
+helm install bp-prod ./bp-chart -f bp-chart/values-prod.yaml --namespace bp --create-namespace
 ```
 
 Get the external IP for the cluster
@@ -117,13 +117,13 @@ Add this to your hosts file i.e.
 ### 🔄 Upgrade a Release
 
 ```bash
-helm upgrade bp-dev ./bp-chart -f bp-chart/values-dev.yaml
+helm upgrade bp-dev ./bp-chart -f bp-chart/values-dev.yaml -n bp
 ```
 
 ### 🗑 Uninstall
 
 ```bash
-helm uninstall bp-dev --namespace bp-dev
+helm uninstall bp-dev --namespace bp
 ```
 
 ---
@@ -165,8 +165,8 @@ kubectl delete -f bp-k8s/
 
 ### If using Helm:
 ```bash
-helm uninstall bp-dev --namespace bp-dev
-kubectl delete namespace bp-dev
+helm uninstall bp-dev --namespace bp
+kubectl delete namespace bp
 ```
 
 ---

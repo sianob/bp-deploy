@@ -1,4 +1,4 @@
-namespace: bp-dev
+namespace: bp
 image:
   backend: salob79/bp-backend:latest
   frontend: salob79/bp-frontend:latest
