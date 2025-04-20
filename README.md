@@ -91,10 +91,27 @@ This folder contains a Helm chart that templates all resources and supports mult
 helm install bp-dev ./bp-chart -f bp-chart/values-dev.yaml --namespace bp-dev --create-namespace
 ```
 
-### 🚢 Install for Prod
+### 🚢 Install for Prod (AKS)
+
+Ensure you are using the correct context e.g.
+
+```bash
+export KUBECONFIG=~/.kube/aks-config
+```
 
 ```bash
 helm install bp-prod ./bp-chart -f bp-chart/values-prod.yaml --namespace bp-prod --create-namespace
+```
+
+Get the external IP for the cluster
+
+```bash
+kubectl get svc -n ingress-nginx
+```
+Add this to your hosts file i.e.
+
+```bash
+<EXTERNAL-IP>  bp.example.com
 ```
 
 ### 🔄 Upgrade a Release

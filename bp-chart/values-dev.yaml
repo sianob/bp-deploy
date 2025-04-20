@@ -7,4 +7,6 @@ image:
 host: bp.local
 
 mongo:
+  pvcName: mongo-pvc
   pvcSize: 1Gi
+  storageClass: ""

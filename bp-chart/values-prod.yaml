@@ -7,4 +7,6 @@ image:
 host: bp.example.com
 
 mongo:
-  pvcSize: 1Gi
+  pvcName: mongo-pvc
+  pvcSize: 5Gi
+  storageClass: managed-csi

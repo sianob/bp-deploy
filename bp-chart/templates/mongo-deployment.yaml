@@ -42,7 +42,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mongo-pvc
+  name: {{ .Values.mongo.pvcName }}
   namespace: {{ .Values.namespace }}
 spec:
   accessModes:
@@ -50,3 +50,6 @@ spec:
   resources:
     requests:
       storage: {{ .Values.mongo.pvcSize }}
+  {{- if .Values.mongo.storageClass }}
+  storageClassName: {{ .Values.mongo.storageClass }}
+  {{- end }}
