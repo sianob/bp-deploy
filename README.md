@@ -25,6 +25,16 @@ Both deployment methods rely on an Ingress resource. You must install the NGINX 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.1/deploy/static/provider/cloud/deploy.yaml
 ```
+or
+
+```bash
+- name: Install or upgrade Ingress NGINX via Helm
+  run: |
+    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+    helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+      --namespace ingress-nginx --create-namespace
+
+```
 
 Then confirm it's running:
 
@@ -88,7 +98,7 @@ This folder contains a Helm chart that templates all resources and supports mult
 ### 🧪 Install for Staging
 
 ```bash
-helm install bp-dev ./bp-chart -f bp-chart/values-staging.yaml --namespace bp --create-namespace
+helm install bp-app ./bp-chart -f bp-chart/values-staging.yaml --namespace bp --create-namespace
 ```
 
 ### 🚢 Install for Prod (AKS)
