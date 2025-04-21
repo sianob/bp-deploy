@@ -1,36 +1,39 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: {{ .Values.backend.name | default "backend" }}
   namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.backend.name | default "backend" }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.backend.replicas | default 1 }}
   selector:
     matchLabels:
-      app: backend
+      app: {{ .Values.backend.name | default "backend" }}
   template:
     metadata:
       labels:
-        app: backend
+        app: {{ .Values.backend.name | default "backend" }}
     spec:
       containers:
-        - name: backend
+        - name: {{ .Values.backend.name | default "backend" }}
           image: {{ .Values.image.backend }}
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.backend.port | default 8080 }}
           env:
             - name: SPRING_DATA_MONGODB_URI
-              value: mongodb://mongo:27017/bp
+              value: {{ .Values.backend.mongoUri | default "mongodb://mongodb:27017/bp" }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend
+  name: {{ .Values.service.backend.name | default "backend" }}
   namespace: {{ .Values.namespace }}
 spec:
   selector:
-    app: backend
+    app: {{ .Values.backend.name | default "backend" }}
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: {{ .Values.service.backend.port | default 8080 }}
+      targetPort: {{ .Values.backend.port | default 8080 }}

@@ -9,7 +9,8 @@ on:
         type: choice
         options:
           - staging
-          - prod
+          - prod-canary
+          - prod-stable
 
 jobs:
   deploy:
@@ -32,7 +33,7 @@ jobs:
           echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
 
       - name: Set kubeconfig secret (prod)
-        if: github.event.inputs.environment == 'prod'
+        if: github.event.inputs.environment == 'prod-canary' || github.event.inputs.environment == 'prod-stable'
         run: |
           echo "${{ secrets.KUBECONFIG_PROD }}" > kubeconfig
           echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
@@ -48,10 +49,11 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade --install bp-app ./bp-chart \
+          helm upgrade --install bp-${{ github.event.inputs.environment }} ./bp-chart \
             -f ./bp-chart/values-${{ github.event.inputs.environment }}.yaml \
-            --namespace bp \
+            --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) \
             --create-namespace
+  
       - name: Get Ingress IP
         run: |
           kubectl get ingress -n bp -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}' > ingress-ip.txt

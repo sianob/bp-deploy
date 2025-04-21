@@ -1,36 +1,37 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
+  name: {{ .Values.frontend.name | default "frontend" }}
   namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.frontend.name | default "frontend" }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.frontend.replicas | default 1 }}
   selector:
     matchLabels:
-      app: frontend
+      app: {{ .Values.frontend.name | default "frontend" }}
   template:
     metadata:
       labels:
-        app: frontend
+        app: {{ .Values.frontend.name | default "frontend" }}
     spec:
       containers:
-        - name: frontend
+        - name: {{ .Values.frontend.name | default "frontend" }}
           image: {{ .Values.image.frontend }}
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
+            - containerPort: {{ .Values.frontend.port | default 80 }}
           env:
             - name: VITE_API_BASE_URL
-              value: /api
+              value: {{ .Values.frontend.apiBaseUrl | default "/api" }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend
+  name: {{ .Values.service.frontend.name | default "frontend" }}
   namespace: {{ .Values.namespace }}
 spec:
   selector:
-    app: frontend
-  ports:
-    - port: 80
-      targetPort: 80
+    app: {{ .Values.frontend.name | default "frontend" }}
+  ports

@@ -1,0 +1,39 @@
+namespace: bp-prod
+
+nameOverride: bp-stable
+
+image:
+  backend: salob79/bp-backend:1.0.5
+  frontend: salob79/bp-frontend:1.0.2
+  mongo: mongo:7
+
+mongo:
+  enabled: true
+  pvcName: mongo-pvc
+  pvcSize: 5Gi
+  storageClass: managed-csi
+
+ingress:
+  name: bp-ingress
+  className: nginx
+  canary: false
+
+service:
+  frontend:
+    name: frontend
+    port: 80
+  backend:
+    name: backend
+    port: 8080
+
+backend:
+  name: backend
+  replicas: 2
+  port: 8080
+  mongoUri: mongodb://mongo:27017/bp
+
+frontend:
+  name: frontend
+  replicas: 2
+  port: 80
+  apiBaseUrl: /api

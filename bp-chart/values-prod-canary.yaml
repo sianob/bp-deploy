@@ -1,0 +1,36 @@
+namespace: bp-prod
+
+nameOverride: bp-canary
+
+image:
+  backend: salob79/bp-backend:latest
+  frontend: salob79/bp-frontend:latest
+  mongo: mongo:7
+
+mongo:
+  enabled: false
+
+ingress:
+  name: bp-ingress-canary
+  canary: true
+  canaryWeight: 10
+
+service:
+  frontend:
+    name: frontend-canary
+    port: 80
+  backend:
+    name: backend-canary
+    port: 8080
+
+backend:
+  name: backend-canary
+  replicas: 1
+  port: 8080
+  mongoUri: mongodb://mongo:27017/bp
+
+frontend:
+  name: frontend-canary
+  replicas: 1
+  port: 80
+  apiBaseUrl: /api
