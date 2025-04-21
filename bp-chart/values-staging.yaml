@@ -27,3 +27,15 @@ service:
   backend:
     name: backend
     port: 8080
+
+backend:
+  name: backend
+  replicas: 2
+  port: 8080
+  mongoUri: mongodb://mongo:27017/bp
+
+frontend:
+  name: frontend
+  replicas: 2
+  port: 80
+  apiBaseUrl: /api
