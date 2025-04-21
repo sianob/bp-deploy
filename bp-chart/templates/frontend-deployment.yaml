@@ -34,4 +34,6 @@ metadata:
 spec:
   selector:
     app: {{ .Values.frontend.name | default "frontend" }}
-  ports
+  ports:
+    - port: {{ .Values.service.frontend.port | default 80 }}
+      targetPort: {{ .Values.frontend.port | default 80 }}
