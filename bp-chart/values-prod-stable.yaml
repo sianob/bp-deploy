@@ -3,8 +3,8 @@ namespace: bp-prod
 nameOverride: bp-stable
 
 image:
-  backend: salob79/bp-backend:1.0.5
-  frontend: salob79/bp-frontend:1.0.2
+  backend: salob79/bp-backend:v1.0.5
+  frontend: salob79/bp-frontend:v1.0.2
   mongo: mongo:7
 
 mongo:
