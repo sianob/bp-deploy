@@ -1,4 +1,7 @@
-namespace: bp
+namespace: bp-staging
+
+nameOverride: bp-staging
+
 image:
   backend: salob79/bp-backend:latest
   frontend: salob79/bp-frontend:latest
@@ -7,6 +10,20 @@ image:
 host: bp.local
 
 mongo:
+  enabled: true
   pvcName: mongo-pvc
   pvcSize: 1Gi
-  storageClass: ""
+  storageClass: managed-csi
+
+ingress:
+  name: bp-ingress
+  className: nginx
+  canary: false
+
+service:
+  frontend:
+    name: frontend
+    port: 80
+  backend:
+    name: backend
+    port: 8080
