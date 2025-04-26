@@ -41,6 +41,15 @@ jobs:
       - name: Verify Kube Context
         run: kubectl config get-contexts
 
+      - name: Install Cert Manager
+        run: |
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+          helm install cert-manager jetstack/cert-manager \
+            --namespace cert-manager \
+            --create-namespace \
+          --set installCRDs=true
+
       - name: Deploy with Helm
         run: |
           helm upgrade --install bp-${{ github.event.inputs.environment }} ./bp-chart \
@@ -80,9 +89,3 @@ jobs:
             --zone-name "bp-calculator.com" \
             --record-set-name "$DNS_NAME" \
             --ipv4-address "$(cat ingress-ip.txt)"
-
-      - name: Update DNS A record
-        run: |
-            kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.2/cert-manager.yaml
-
-
