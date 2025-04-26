@@ -53,4 +53,25 @@ jobs:
           kubectl get ingress -n $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}' > ingress-ip.txt
           echo "Ingress IP: $(cat ingress-ip.txt)"
           echo "Deployment available at http://$(cat ingress-ip.txt)"
-     
+
+      # Azure login using service principal and secret
+      - name: Azure Login action
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+    
+      - name: Update DNS A record
+        run: |
+          echo "Creating/updating DNS record..."
+          az network dns record-set a create \
+            --resource-group "rg-monitoring-bp" \
+            --zone-name "bp-calculator.com" \
+            --name "prod.bp-calculator.com" \
+            --ttl 300
+          az network dns record-set a add-record \
+            --resource-group "rg-monitoring-bp" \
+            --zone-name "bp-calculator.com" \
+            --record-set-name "prod.bp-calculator.com" \
+            --ipv4-address "$(cat ingress-ip.txt)"
+
