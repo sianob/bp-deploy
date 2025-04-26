@@ -41,12 +41,6 @@ jobs:
       - name: Verify Kube Context
         run: kubectl config get-contexts
 
-      - name: Install or upgrade Ingress NGINX via Helm
-        run: |
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-            --namespace ingress-nginx --create-namespace
-
       - name: Deploy with Helm
         run: |
           helm upgrade --install bp-${{ github.event.inputs.environment }} ./bp-chart \
