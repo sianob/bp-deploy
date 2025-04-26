@@ -11,6 +11,7 @@ mongo:
   enabled: false
 
 ingress:
+  host: prod.bp-calculator.com
   name: bp-ingress-canary
   canary: true
   canaryWeight: 10
@@ -38,6 +39,6 @@ frontend:
 certManager:
   enabled: true
   clusterIssuerName: letsencrypt-prod
-  email: your-email@example.com
+  email: sianob79@example.com
   server: https://acme-v02.api.letsencrypt.org/directory
   secretName: prod-tls

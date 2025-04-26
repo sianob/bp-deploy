@@ -81,3 +81,8 @@ jobs:
             --record-set-name "$DNS_NAME" \
             --ipv4-address "$(cat ingress-ip.txt)"
 
+      - name: Update DNS A record
+        run: |
+            kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.2/cert-manager.yaml
+
+
