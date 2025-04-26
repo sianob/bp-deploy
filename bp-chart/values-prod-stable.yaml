@@ -42,6 +42,6 @@ frontend:
 certManager:
   enabled: true
   clusterIssuerName: letsencrypt-prod
-  email: sianob79@example.com
+  email: sianob79@gmail.com
   server: https://acme-v02.api.letsencrypt.org/directory
   secretName: prod-tls
