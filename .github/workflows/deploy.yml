@@ -63,15 +63,21 @@ jobs:
     
       - name: Update DNS A record
         run: |
-          echo "Creating/updating DNS record..."
+          if [[ "${{ github.event.inputs.environment }}" == "staging" ; then
+            DNS_NAME="staging.bp-calculator.com"
+          else
+            DNS_NAME="prod.bp-calculator.com"
+          fi
+
+          echo "Creating/updating DNS record for $DNS_NAME..."
           az network dns record-set a create \
             --resource-group "rg-monitoring-bp" \
             --zone-name "bp-calculator.com" \
-            --name "prod.bp-calculator.com" \
+            --name "$DNS_NAME" \
             --ttl 300
           az network dns record-set a add-record \
             --resource-group "rg-monitoring-bp" \
             --zone-name "bp-calculator.com" \
-            --record-set-name "prod.bp-calculator.com" \
+            --record-set-name "$DNS_NAME" \
             --ipv4-address "$(cat ingress-ip.txt)"
 
