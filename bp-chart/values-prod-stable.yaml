@@ -37,3 +37,10 @@ frontend:
   replicas: 2
   port: 80
   apiBaseUrl: /api
+
+certManager:
+  enabled: true
+  clusterIssuerName: letsencrypt-prod
+  email: your-email@example.com
+  server: https://acme-v02.api.letsencrypt.org/directory
+  secretName: prod-tls
