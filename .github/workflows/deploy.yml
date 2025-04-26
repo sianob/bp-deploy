@@ -64,9 +64,9 @@ jobs:
       - name: Update DNS A record
         run: |
           if [[ "${{ github.event.inputs.environment }}" == "staging" ]]; then
-            DNS_NAME="staging.bp-calculator.com"
+            DNS_NAME="staging"
           else
-            DNS_NAME="prod.bp-calculator.com"
+            DNS_NAME="prod"
           fi
 
           echo "Creating/updating DNS record for $DNS_NAME..."
