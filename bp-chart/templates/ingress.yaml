@@ -15,7 +15,7 @@ spec:
         - {{ .Values.ingress.host }}
       secretName: tls-secret
   rules:
-    - host: {{ .Values.ingress.host }}  
+    - host: *.bp-calculator.com
       http:
         paths:
           - path: /
