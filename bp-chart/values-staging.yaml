@@ -42,7 +42,7 @@ frontend:
   apiBaseUrl: /api
 
 certManager:
-  enabled: true
+  enabled: false
   clusterIssuerName: letsencrypt-staging
   email: sianob79@gmail.com
   server: https://acme-staging-v02.api.letsencrypt.org/directory
