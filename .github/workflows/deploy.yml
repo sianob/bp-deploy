@@ -41,14 +41,16 @@ jobs:
       - name: Verify Kube Context
         run: kubectl config get-contexts
 
-      # - name: Install Cert Manager
-      #   run: |
-      #     helm repo add jetstack https://charts.jetstack.io
-      #     helm repo update
-      #     helm upgrade --install cert-manager jetstack/cert-manager \
-      #       --namespace cert-manager \
-      #       --create-namespace \
-      #     --set installCRDs=true
+      - name: Create TLS Secret
+        run: |
+          kubectl delete secret tls-secret --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) --ignore-not-found
+          echo "${{ secrets.TLS_CERT_B64 }}" | base64 -d > tls.crt
+          echo "${{ secrets.TLS_KEY_B64 }}" | base64 -d > tls.key
+          kubectl create secret tls tls-secret \
+            --cert=tls.crt \
+            --key=tls.key \
+            --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml)
+
 
       - name: Deploy with Helm
         run: |

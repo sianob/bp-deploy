@@ -8,16 +8,15 @@ metadata:
     nginx.ingress.kubernetes.io/canary: "true"
     nginx.ingress.kubernetes.io/canary-weight: "{{ .Values.ingress.canaryWeight | default "10" }}"
     {{- end }}
-    # cert-manager.io/cluster-issuer: {{ .Values.certManager.clusterIssuerName }}    
 spec:
   ingressClassName: {{ .Values.ingress.className | default "nginx" }}
-  # tls:
-  #   - hosts:
-  #       - {{ .Values.ingress.host }}
-  #     secretName: {{ .Values.certManager.secretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: tls-secret
   rules:
-    # - host: {{ .Values.ingress.host }}  
-    - http:
+    - host: {{ .Values.ingress.host }}  
+      http:
         paths:
           - path: /
             pathType: Prefix
