@@ -19,7 +19,7 @@ ingress:
   name: bp-ingress
   className: nginx
   canary: false
-  host: staging.bp-calculator.com
+  host: *.bp-calculator.com
 
 service:
   frontend:
