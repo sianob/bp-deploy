@@ -7,8 +7,6 @@ image:
   frontend: salob79/bp-frontend:latest
   mongo: mongo:7
 
-host: bp.local
-
 mongo:
   enabled: true
   pvcName: mongo-pvc
