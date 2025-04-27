@@ -41,6 +41,11 @@ jobs:
       - name: Verify Kube Context
         run: kubectl config get-contexts
 
+      - name: Ensure Namespace exists
+        run: |
+          kubectl create namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) --dry-run=client -o yaml | kubectl apply -f -
+
+
       - name: Create TLS Secret
         run: |
           kubectl delete secret tls-secret --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) --ignore-not-found
