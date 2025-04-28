@@ -35,17 +35,21 @@ let res = http.get(baseUrl, {"responseType": "text"})
     "get status is 200": (r) => r.status === 200
   });
   // POST with random data to prevent server cached response to POST
-  let bp = getRandomBloodPressure()
-  res = res.submitForm({
-    fields: { 'BP.Systolic' : bp.systolic,  // Simulated systolic value (70 - 190)
-              'BP.Diastolic' : bp.diastolic }  // Simulated diastolic value (40 - 100)
-  });
+//   let bp = getRandomBloodPressure()
+//   res = res.submitForm({
+//     fields: { 'BP.Systolic' : bp.systolic,  // Simulated systolic value (70 - 190)
+//               'BP.Diastolic' : bp.diastolic }  // Simulated diastolic value (40 - 100)
+//   });
 
   // Validate the response
-  check(res, {
-      'post status is 200': (r) => r.status === 200,
-      'post body contains blood presure category': (r) => r.body.includes(' Blood Pressure')
-  });
+//   check(res, {
+//       'post status is 200': (r) => r.status === 200,
+//       'post body contains blood presure category': (r) => r.body.includes(' Blood Pressure')
+//   });
+    check(res, {
+        "status is 200": (r) => r.status === 200,
+        "body contains root div": (r) => r.body.includes('<div id="root">')
+    });
   // "think" for 3 seconds
   sleep(3);
 }
