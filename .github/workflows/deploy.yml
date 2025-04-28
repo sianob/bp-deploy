@@ -101,7 +101,7 @@ jobs:
     if: github.event.inputs.environment == 'staging'
     runs-on: ubuntu-latest
     permissions: write-all
-    needs: deploy-to-staging
+    needs: deploy
     env:
       WEB_APP_URI: 'staging.bp-calculator.com'
     steps:
