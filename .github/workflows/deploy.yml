@@ -96,3 +96,24 @@ jobs:
             --zone-name "bp-calculator.com" \
             --record-set-name "$DNS_NAME" \
             --ipv4-address "$(cat ingress-ip.txt)"
+
+  performance-tests:
+    if: github.event.inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    permissions: write-all
+    needs: deploy-to-staging
+    env:
+      WEB_APP_URI: 'staging.bp-calculator.com'
+    steps:
+
+      # Checkout the project
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      # Performance Tests    
+      - name: Run K6 Performance Tests
+        run: |
+          docker pull grafana/k6
+          pwd
+          ls -la
+          docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
