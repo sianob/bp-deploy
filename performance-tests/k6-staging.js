@@ -27,8 +27,8 @@ function getRandomBloodPressure() {
 }
 // main k6 function
 export default function() {
-const baseUrl = __ENV.WEB_APP_URI;
-//const baseUrl = "https://sb-csd-bp-staging.azurewebsites.net/"
+
+const baseUrl = "https://staging.bp-calculator.com"
 let res = http.get(baseUrl, {"responseType": "text"})
 
   check(res, {
