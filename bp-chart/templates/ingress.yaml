@@ -12,13 +12,13 @@ metadata:
    
 spec:
   ingressClassName: {{ .Values.ingress.className | default "nginx" }}
-  tls:
-    - hosts:
-        - {{ .Values.ingress.host | default "*.bp-calculator.com" }}
-      secretName: tls-secret
+  # tls:
+  #   - hosts:
+  #       - {{ .Values.ingress.host | default "*.bp-calculator.com" }}
+  #     secretName: tls-secret
   rules:
-    - host: {{ .Values.ingress.host | default "*.bp-calculator.com" }}
-      http:
+    # - host: {{ .Values.ingress.host | default "*.bp-calculator.com" }}
+    - http:
         paths:
           - path: /
             pathType: Prefix
