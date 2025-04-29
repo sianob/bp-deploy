@@ -18,7 +18,7 @@ spec:
       secretName: tls-secret
   rules:
     - host: {{ .Values.ingress.host | default "*.bp-calculator.com" }}
-    - http:
+      http:
         paths:
           - path: /
             pathType: Prefix
