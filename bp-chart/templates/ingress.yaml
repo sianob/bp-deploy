@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.ingress.name | default "bp-ingress" }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   annotations:
-    nginx.ingress.kubernetes.io/health-check-path: /healthz
+    # nginx.ingress.kubernetes.io/health-check-path: /healthz
     {{- if .Values.ingress.canary }}
     nginx.ingress.kubernetes.io/canary: "true"
     nginx.ingress.kubernetes.io/canary-weight: "{{ .Values.ingress.canaryWeight | default "10" }}"
