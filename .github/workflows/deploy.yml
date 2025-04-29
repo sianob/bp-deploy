@@ -12,6 +12,12 @@ on:
           - prod-canary
           - prod-stable
 
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+
 jobs:
   deploy:
     name: Deploy ${{ github.event.inputs.environment }}
