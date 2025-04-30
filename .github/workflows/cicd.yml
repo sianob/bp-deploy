@@ -55,7 +55,7 @@ jobs:
           set -e
 
           # Try to get the latest tag, fallback to v0.0.0 if none exists
-          latest_tag=$(gh release list --repo sianob/bp-frontend --limit 1 --json tagName --jq '.[0].tagName' || echo "")
+          latest_tag=$(gh release list --repo sianob/bp-deploy --limit 1 --json tagName --jq '.[0].tagName' || echo "")
 
           if [[ -z "$latest_tag" ]]; then
             echo "No previous release found. Using v0.0.0"
@@ -78,9 +78,9 @@ jobs:
 
       - name: Create GitHub Release
         run: |
-          echo "Creating release ${{ env.VERSION }} in sianob/bp-frontend..."
+          echo "Creating release ${{ env.VERSION }} in sianob/bp-deploy..."
           gh release create "${{ env.VERSION }}" \
-            --repo "sianob/bp-frontend" \
+            --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
             --notes "frontend: ${{ env.VERSION }}" \
         env:
