@@ -1,0 +1,24 @@
+name: Continuous Integration and Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod-canary
+          - prod-stable
+
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+
+jobs:
+  frontend:
+    uses: sianob/bp-frontend/.github/workflows/frontend-cicd.yml
+ 
