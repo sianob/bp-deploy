@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   annotations:
     # nginx.ingress.kubernetes.io/health-check-path: /healthz
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: /healthz
     {{- if .Values.ingress.canary }}
     nginx.ingress.kubernetes.io/canary: "true"
     nginx.ingress.kubernetes.io/canary-weight: "{{ .Values.ingress.canaryWeight | default "10" }}"
