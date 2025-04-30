@@ -1,5 +1,8 @@
 name: Continuous Integration and Deployment
 
+permissions:
+  contents: write  # Grant write permissions for the entire workflow
+
 on:
   workflow_dispatch:
     inputs:
@@ -21,6 +24,4 @@ on:
 jobs:
   frontend:
     uses: sianob/bp-frontend/.github/workflows/frontend-cicd.yml@main
-    permissions:
-      contents: write  # Required to create release and push tags
  
