@@ -19,6 +19,8 @@ on:
         type: string
 
 jobs:
+  permissions:
+    contents: write  # Required to create release and push tags
   frontend:
     uses: sianob/bp-frontend/.github/workflows/frontend-cicd.yml@main
  
