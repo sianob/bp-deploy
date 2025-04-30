@@ -82,7 +82,7 @@ jobs:
           gh release create "${{ env.VERSION }}" \
             --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
-            --notes "frontend: ${{ env.VERSION }}" \
+            --notes "[frontend: ${{ env.VERSION }}](https://github.com/sianob/bp-frontend/releases/tag/{{ env.VERSION }})" \
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
     
