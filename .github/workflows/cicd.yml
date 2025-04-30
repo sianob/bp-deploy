@@ -33,6 +33,7 @@ on:
 
 jobs:
   frontend:
+    if: ${{ github.event.inputs.trigger == 'frontend' || github.event.inputs.trigger == '' }}
     uses: sianob/bp-frontend/.github/workflows/frontend-cicd.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -41,12 +42,35 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
+  backend:
+    if: ${{ github.event.inputs.trigger == 'backend' || github.event.inputs.trigger == '' }}
+    uses: sianob/bp-backend/.github/workflows/backend-cicd.yml@main
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_PAT }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  iac:
+    needs: [frontend, backend]
+    if: |
+      needs.frontend.result == 'success' || needs.backend.result == 'success'  
+    uses: sianob/bp-iac/.github/workflows/deploy.yml@main
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}         
 
   deploy:
     environment:
       name: ${{ github.event.inputs.environment }}
       url: https://staging.bp-calculator.com
-    needs: frontend
+    needs: [frontend, backend]
+    if: |
+      needs.frontend.result == 'success' || needs.backend.result == 'success'
     runs-on: ubuntu-latest
     steps:
 
@@ -82,8 +106,6 @@ jobs:
           gh release create "${{ env.VERSION }}" \
             --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
-            --notes "[frontend: ${{ env.VERSION }}](https://github.com/sianob/bp-frontend/releases/tag/{{ env.VERSION }})" \
+            --notes "[frontend: ${{ needs.frontend.outputs.image_tag }}](https://github.com/sianob/bp-frontend/releases/tag/${{ needs.frontend.outputs.image_tag }})"
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
-    
-      - run: echo "Frontend image tag was ${{ needs.frontend.outputs.image_tag }}"
