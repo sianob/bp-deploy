@@ -13,10 +13,21 @@ on:
           - staging
           - prod-canary
           - prod-stable
+      trigger:
+        description: 'Choose environment to deploy to'
+        required: false
+        type: choice
+        options:
+          - 
+          - frontend
+          - backend
 
   workflow_call:
     inputs:
       environment:
+        required: false
+        type: string
+      trigger:
         required: false
         type: string
 
