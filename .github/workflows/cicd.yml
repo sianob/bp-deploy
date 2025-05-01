@@ -67,7 +67,10 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
     with:
-      environment: ${{ github.event.inputs.environment }}
+      environment: 
+        if: ${{ github.event.inputs.environment == 'staging' }}
+        then: staging
+        else: prod
       action: 'create'
 
   deploy:
