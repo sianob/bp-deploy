@@ -59,7 +59,7 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   temp:
-    needs: [frontend, backend]
+    needs: [frontend]
     runs-on: ubuntu-latest
     steps:
       - name: check status
