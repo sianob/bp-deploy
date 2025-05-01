@@ -265,8 +265,6 @@ jobs:
       url: https://prod.bp-calculator.com
     needs: canary
     runs-on: ubuntu-latest
-    with:
-      environment: prod-stable
     steps:
 
       - name: Checkout code
@@ -334,10 +332,11 @@ jobs:
             --record-set-name "$DNS_NAME" \
             --ipv4-address "$(cat ingress-ip.txt)"
         
-      - name: Update GitHub Release Title
+      - name: Update GitHub Release
         run: |
-          gh release edit ${{ env.VERSION }} \
+          latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          gh release edit $latest_tag \
             --repo ${{ github.repository }} \
-            --title "${ env.VERSION } - Production Stable Release"
+            --title "$latest_tag - Production Stable Release"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # or GH_PAT if needed
