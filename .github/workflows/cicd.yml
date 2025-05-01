@@ -107,9 +107,16 @@ jobs:
       - name: Create GitHub Release
         run: |
           echo "Creating release ${{ env.VERSION }} in sianob/bp-deploy..."
+          gh api repos/${{ github.repository }}/releases/generate-notes \
+            -f tag_name="${{ env.VERSION }}" \
+            -q .body >generated.md
+          echo "## Deployment Details" >>generated.md
+          echo "[frontend: ${{ needs.frontend.outputs.image_tag }}](https://github.com/sianob/bp-frontend/releases/tag/${{ needs.frontend.outputs.image_tag }})" >>generated.md
+          echo "[backend: ${{ needs.backend.outputs.image_tag }}](https://github.com/sianob/bp-backend/releases/tag/${{ needs.backend.outputs.image_tag }})" >>generated.md
           gh release create "${{ env.VERSION }}" \
             --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
-            --notes "[frontend: ${{ needs.frontend.outputs.image_tag }}](https://github.com/sianob/bp-frontend/releases/tag/${{ needs.frontend.outputs.image_tag }})"
+            --notes-file generated.md \
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+
