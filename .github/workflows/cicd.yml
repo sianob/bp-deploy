@@ -249,14 +249,14 @@ jobs:
           pwd
           ls -la
           docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
-  # canary:
-  #   uses: ./.github/workflows/deploy.yml
-  #   runs-on: ubuntu-latest
-  #   with:
-  #     environment: prod-canary
-  #   needs: 
-  #     - performance-tests
-  #     - ui-tests
+  canary:
+    uses: ./.github/workflows/deploy.yml
+    runs-on: ubuntu-latest
+    with:
+      environment: prod-canary
+    needs: 
+      - performance-tests
+      - ui-tests
 
   # deploy-prod:
   #   environment:
