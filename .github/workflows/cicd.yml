@@ -152,16 +152,22 @@ jobs:
       - name: Create GitHub Release
         run: |
           echo "Creating release ${{ env.VERSION }} in sianob/bp-deploy..."
+          FRONTEND_RELEASE=$(gh release view -R sianob/bp-frontend --json name,url)
+          FRONTEND_NAME=$(echo "$FRONTEND_RELEASE" | jq -r .name)
+          FRONTEND_URL=$(echo "$FRONTEND_RELEASE" | jq -r .url)
+          BACKEND_RELEASE=$(gh release view -R sianob/bp-backend --json name,url)
+          BACKEND_NAME=$(echo "$BACKEND_RELEASE" | jq -r .name)
+          BACKEND_URL=$(echo "$BACKEND_RELEASE" | jq -r .url)          
           gh api repos/${{ github.repository }}/releases/generate-notes \
             -f tag_name="${{ env.VERSION }}" \
             -q .body >generated.md
           echo "## Deployment Details" >>generated.md
-          echo "[frontend: ${{ needs.frontend.outputs.image_tag }}](https://github.com/sianob/bp-frontend/releases/tag/${{ needs.frontend.outputs.image_tag }})" >>generated.md
-          echo "[backend: ${{ needs.backend.outputs.image_tag }}](https://github.com/sianob/bp-backend/releases/tag/${{ needs.backend.outputs.image_tag }})" >>generated.md
+          echo "[Frontend: $FRONTEND_NAME]($FRONTEND_URL)" >>generated.md
+          echo "[Backend: $BACKEND_NAME]($BACKEND_URL)" >>generated.md
           gh release create "${{ env.VERSION }}" \
             --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
-            --notes-file generated.md \
+            --notes-file generated.md
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
