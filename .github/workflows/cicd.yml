@@ -68,9 +68,7 @@ jobs:
     environment:
       name: ${{ github.event.inputs.environment }}
       url: https://staging.bp-calculator.com
-    needs: [frontend, backend]
-    if: |
-      needs.frontend.result == 'success' || needs.backend.result == 'success'
+    needs: iac
     runs-on: ubuntu-latest
     steps:
 
