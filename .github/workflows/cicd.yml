@@ -131,7 +131,9 @@ jobs:
             version="0.0.0"
           else
             echo "Latest tag: $latest_tag"
-            version="${latest_tag#v}"  # remove 'v'
+            version="${latest_tag#Stable Production Version - }"
+            version="${version#v}"  # remove 'v'
+
           fi
 
           # Split version and increment patch
@@ -248,16 +250,36 @@ jobs:
           ls -la
           docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
   canary:
-    environment:
-      name: prod-canary
-      url: https://prod.bp-calculator.com
-    uses: ./.github/workflows/deploy.yml
-    with:
-      environment: prod-canary
-    needs: 
+    name: Deploy Canary
+    needs:
       - performance-tests
       - ui-tests
+    runs-on: ubuntu-latest
+    environment:
+      name: prod-canary
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set kubeconfig secret (prod)
+        run: |
+          echo "${{ secrets.KUBECONFIG_PROD }}" > kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
+
+      - name: Verify Kube Context
+        run: kubectl config get-contexts
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install bp-${{ github.event.inputs.environment }} ./bp-chart \
+            -f ./bp-chart/values-${{ github.event.inputs.environment }}.yaml \
+            --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) \
+            --create-namespace
+  
   deploy-prod:
     environment:
       name: prod-stable
@@ -336,6 +358,6 @@ jobs:
           latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
           gh release edit $latest_tag \
             --repo ${{ github.repository }} \
-            --title "$latest_tag - Production Stable Release"
+            --title "Stable Production Version - $latest_tag"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # or GH_PAT if needed
