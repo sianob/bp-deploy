@@ -81,8 +81,6 @@ jobs:
       url: https://staging.bp-calculator.com
     needs: iac
     runs-on: ubuntu-latest
-    with:
-      environment: ${{ github.event.inputs.environment }}
     steps:
 
       - name: Checkout code
