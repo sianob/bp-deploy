@@ -1,9 +1,9 @@
 name: Continuous Integration and Deployment
 permissions:
   contents: write  # Grant write permissions for the entire workflow
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
+# concurrency:
+#   group: ${{ github.workflow }}
+#   cancel-in-progress: false
 
 on:
   workflow_dispatch:
