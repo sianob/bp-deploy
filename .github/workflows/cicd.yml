@@ -64,7 +64,6 @@ jobs:
       (needs.frontend.result == 'success' && !needs.backend.result) ||
       (needs.backend.result == 'success' && !needs.frontend.result) ||
       (needs.frontend.result == 'success' && needs.backend.result == 'success')
-    runs-on: ubuntu-latest
     uses: sianob/bp-iac/.github/workflows/deploy.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -250,6 +249,9 @@ jobs:
           ls -la
           docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
   canary:
+    environment:
+      name: prod-canary
+      url: https://prod.bp-calculator.com
     uses: ./.github/workflows/deploy.yml
     runs-on: ubuntu-latest
     with:
@@ -258,14 +260,85 @@ jobs:
       - performance-tests
       - ui-tests
 
-  # deploy-prod:
-  #   environment:
-  #     name: ${{ github.event.inputs.environment }}
-  #     url: https://prod.bp-calculator.com
-  #   uses: ./.github/workflows/cicd.yml
-  #   runs-on: ubuntu-latest
-  #   with:
-  #     environment: prod-stable
-  #   needs: 
-  #     - performance-tests
-  #     - ui-tests
+  deploy-prod:
+    environment:
+      name: prod-stable
+      url: https://prod.bp-calculator.com
+    needs: canary
+    runs-on: ubuntu-latest
+    with:
+      environment: prod-stable
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set kubeconfig secret (staging)
+        run: |
+          echo "${{ secrets.KUBECONFIG_PROD }}" >kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
+
+      - name: Verify Kube Context
+        run: kubectl config get-contexts
+
+      - name: Ensure Namespace exists
+        run: |
+          kubectl create namespace $(yq e '.namespace' ./bp-chart/values-prod-stable.yaml) --dry-run=client -o yaml | kubectl apply -f -
+
+
+      - name: Create TLS Secret
+        run: |
+          kubectl delete secret tls-secret --namespace $(yq e '.namespace' ./bp-chart/values-prod-stable.yaml) --ignore-not-found
+          echo "${{ secrets.TLS_CERT_B64 }}" | base64 -d > tls.crt
+          echo "${{ secrets.TLS_KEY_B64 }}" | base64 -d > tls.key
+          kubectl create secret tls tls-secret \
+            --cert=tls.crt \
+            --key=tls.key \
+            --namespace $(yq e '.namespace' ./bp-chart/values-prod-stable.yaml)
+
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install bp-prod-stable ./bp-chart \
+            -f ./bp-chart/values-prod-stable.yaml \
+            --namespace $(yq e '.namespace' ./bp-chart/values-prod-stable.yaml) \
+            --create-namespace
+  
+      - name: Get Ingress IP
+        run: |
+          kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > ingress-ip.txt
+          echo "Ingress IP: $(cat ingress-ip.txt)"
+          echo "Deployment available at http://$(cat ingress-ip.txt)"
+
+      # Azure login using service principal and secret
+      - name: Azure Login action
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+    
+      - name: Update DNS A record
+        run: |
+          DNS_NAME="prod"
+          echo "Creating/updating DNS record for $DNS_NAME..."
+          az network dns record-set a create \
+            --resource-group "rg-monitoring-bp" \
+            --zone-name "bp-calculator.com" \
+            --name "$DNS_NAME" \
+            --ttl 300
+          az network dns record-set a add-record \
+            --resource-group "rg-monitoring-bp" \
+            --zone-name "bp-calculator.com" \
+            --record-set-name "$DNS_NAME" \
+            --ipv4-address "$(cat ingress-ip.txt)"
+        
+      - name: Update GitHub Release Title
+        run: |
+          gh release edit ${{ env.VERSION }} \
+            --repo ${{ github.repository }} \
+            --title "${ env.VERSION } - Production Stable Release"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # or GH_PAT if needed
