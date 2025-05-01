@@ -58,16 +58,13 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  temp:
-    needs: [frontend]
-    runs-on: ubuntu-latest
-    steps:
-      - name: check status
-        run: |
-          echo "Frontend: ${{ needs.frontend.result }}"
-          echo "Backend: ${{ needs.backend.result }}"
   iac:
     needs: [frontend, backend]
+    if: |
+      (needs.frontend.result == 'success' && !needs.backend.result) ||
+      (needs.backend.result == 'success' && !needs.frontend.result) ||
+      (needs.frontend.result == 'success' && needs.backend.result == 'success')
+    runs-on: ubuntu-latest
     uses: sianob/bp-iac/.github/workflows/deploy.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -79,12 +76,13 @@ jobs:
       environment: ${{ github.event.inputs.environment == 'staging' && 'staging' || 'prod' }}
       action: 'create'
 
-  deploy:
+  staging-deploy:
     environment:
       name: ${{ github.event.inputs.environment }}
       url: https://staging.bp-calculator.com
     needs: iac
-    runs-on: ubuntu-latest
+    with:
+      environment: ${{ github.event.inputs.environment }}
     steps:
 
       - name: Checkout code
@@ -215,7 +213,7 @@ jobs:
     if: github.event.inputs.environment == 'staging'
     runs-on: ubuntu-latest
     permissions: write-all
-    needs: deploy
+    needs: staging-deploy
     env:
       WEB_APP_URI: 'staging.bp-calculator.com'
     steps:
@@ -231,3 +229,43 @@ jobs:
           pwd
           ls -la
           docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
+  ui-tests:
+    if: github.event.inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    permissions: write-all
+    needs: staging-deploy
+    env:
+      WEB_APP_URI: 'staging.bp-calculator.com'
+    steps:
+
+      # Checkout the project
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      # Performance Tests    
+      - name: Run K6 Performance Tests
+        run: |
+          docker pull grafana/k6
+          pwd
+          ls -la
+          docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
+  canary:
+    uses: .github/workflows/deploy.yml@main
+    runs-on: ubuntu-latest
+    with:
+      environment: prod-canary
+    needs: 
+      - performance-tests
+      - ui-tests
+
+  deploy-prod:
+    environment:
+      name: ${{ github.event.inputs.environment }}
+      url: https://prod.bp-calculator.com
+    uses: .github/workflows/cicd.yml@main
+    runs-on: ubuntu-latest
+    with:
+      environment: prod-stable
+    needs: 
+      - performance-tests
+      - ui-tests
