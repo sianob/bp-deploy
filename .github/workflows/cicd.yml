@@ -55,10 +55,16 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
+  temp:
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: check status
+        run: |
+          echo "Frontend: ${{ needs.frontend.result }}"
+          echo "Backend: ${{ needs.backend.result }}"
   iac:
     needs: [frontend, backend]
-    if: |
-      needs.frontend.result == 'success' || needs.backend.result == 'success'  
     uses: sianob/bp-iac/.github/workflows/deploy.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -67,10 +73,7 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
     with:
-      environment: 
-        if: ${{ github.event.inputs.environment == 'staging' }}
-        then: staging
-        else: prod
+      environment: ${{ github.event.inputs.environment == 'staging' && 'staging' || 'prod' }}
       action: 'create'
 
   deploy:
