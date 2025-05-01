@@ -250,7 +250,7 @@ jobs:
           ls -la
           docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
   canary:
-    uses: .github/workflows/deploy.yml@main
+    uses: ./.github/workflows/deploy.yml@main
     runs-on: ubuntu-latest
     with:
       environment: prod-canary
@@ -262,7 +262,7 @@ jobs:
     environment:
       name: ${{ github.event.inputs.environment }}
       url: https://prod.bp-calculator.com
-    uses: .github/workflows/cicd.yml@main
+    uses: ./.github/workflows/cicd.yml@main
     runs-on: ubuntu-latest
     with:
       environment: prod-stable
