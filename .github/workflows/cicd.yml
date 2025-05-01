@@ -39,7 +39,7 @@ on:
 
 jobs:
   frontend:
-    if: ${{ github.event.inputs.trigger == 'frontend' || github.event.inputs.trigger == '' }}
+    if: ${{ github.event.inputs.environment == 'staging' && (github.event.inputs.trigger == 'frontend' || github.event.inputs.trigger == '') }}
     uses: sianob/bp-frontend/.github/workflows/frontend-cicd.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -49,7 +49,7 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   backend:
-    if: ${{ github.event.inputs.trigger == 'backend' || github.event.inputs.trigger == '' }}
+    if: ${{ github.event.inputs.environment == 'staging' && (github.event.inputs.trigger == 'backend' || github.event.inputs.trigger == '') }}
     uses: sianob/bp-backend/.github/workflows/backend-cicd.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -76,7 +76,7 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
     with:
-      environment: ${{ github.event.inputs.environment == 'staging' && 'staging' || 'prod' }}
+      cluster-environment: ${{ github.event.inputs.environment == 'staging' && 'staging' || 'prod' }}
       action: 'create'
 
   deploy:
