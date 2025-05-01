@@ -60,10 +60,7 @@ jobs:
 
   iac:
     needs: [frontend, backend]
-    if: |
-      (needs.frontend.result == 'success' && !needs.backend.result) ||
-      (needs.backend.result == 'success' && !needs.frontend.result) ||
-      (needs.frontend.result == 'success' && needs.backend.result == 'success')
+    if: always() && (github.frontend.result == 'success' || github.backend.result == 'success')
     uses: sianob/bp-iac/.github/workflows/deploy.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
