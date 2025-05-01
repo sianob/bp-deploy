@@ -84,6 +84,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set kubeconfig secret (staging)
+        if: github.event.inputs.environment == 'staging'
+        run: |
+          echo "${{ secrets.KUBECONFIG_STAGING }}" > kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
+
+      - name: Set kubeconfig secret (prod)
+        if: github.event.inputs.environment == 'prod-canary' || github.event.inputs.environment == 'prod-stable'
+        run: |
+          echo "${{ secrets.KUBECONFIG_PROD }}" > kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
+
+      - name: Verify Kube Context
+        run: kubectl config get-contexts
+
+      - name: Ensure Namespace exists
+        run: |
+          kubectl create namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) --dry-run=client -o yaml | kubectl apply -f -
+
+
+      - name: Create TLS Secret
+        run: |
+          kubectl delete secret tls-secret --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) --ignore-not-found
+          echo "${{ secrets.TLS_CERT_B64 }}" | base64 -d > tls.crt
+          echo "${{ secrets.TLS_KEY_B64 }}" | base64 -d > tls.key
+          kubectl create secret tls tls-secret \
+            --cert=tls.crt \
+            --key=tls.key \
+            --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml)
+
       - name: Get and bump latest release version
         run: |
           set -e
@@ -126,3 +162,63 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install bp-${{ github.event.inputs.environment }} ./bp-chart \
+            -f ./bp-chart/values-${{ github.event.inputs.environment }}.yaml \
+            --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) \
+            --create-namespace
+  
+      - name: Get Ingress IP
+        run: |
+          kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > ingress-ip.txt
+          echo "Ingress IP: $(cat ingress-ip.txt)"
+          echo "Deployment available at http://$(cat ingress-ip.txt)"
+
+      # Azure login using service principal and secret
+      - name: Azure Login action
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+    
+      - name: Update DNS A record
+        run: |
+          if [[ "${{ github.event.inputs.environment }}" == "staging" ]]; then
+            DNS_NAME="staging"
+          else
+            DNS_NAME="prod"
+          fi
+
+          echo "Creating/updating DNS record for $DNS_NAME..."
+          az network dns record-set a create \
+            --resource-group "rg-monitoring-bp" \
+            --zone-name "bp-calculator.com" \
+            --name "$DNS_NAME" \
+            --ttl 300
+          az network dns record-set a add-record \
+            --resource-group "rg-monitoring-bp" \
+            --zone-name "bp-calculator.com" \
+            --record-set-name "$DNS_NAME" \
+            --ipv4-address "$(cat ingress-ip.txt)"
+
+  performance-tests:
+    if: github.event.inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    permissions: write-all
+    needs: deploy
+    env:
+      WEB_APP_URI: 'staging.bp-calculator.com'
+    steps:
+
+      # Checkout the project
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      # Performance Tests    
+      - name: Run K6 Performance Tests
+        run: |
+          docker pull grafana/k6
+          pwd
+          ls -la
+          docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
