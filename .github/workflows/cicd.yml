@@ -1,4 +1,7 @@
-name: Continuous Integration and Deployment
+name: CI/CD - ${{ github.event.inputs.environment }}
+description: |
+  This workflow deploys the application to the specified environment.
+  It is triggered manually and can be called from other workflows.
 permissions:
   contents: write  # Grant write permissions for the entire workflow
 # concurrency:
