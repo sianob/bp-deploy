@@ -258,14 +258,14 @@ jobs:
       - performance-tests
       - ui-tests
 
-  deploy-prod:
-    environment:
-      name: ${{ github.event.inputs.environment }}
-      url: https://prod.bp-calculator.com
-    uses: ./.github/workflows/cicd.yml
-    runs-on: ubuntu-latest
-    with:
-      environment: prod-stable
-    needs: 
-      - performance-tests
-      - ui-tests
+  # deploy-prod:
+  #   environment:
+  #     name: ${{ github.event.inputs.environment }}
+  #     url: https://prod.bp-calculator.com
+  #   uses: ./.github/workflows/cicd.yml
+  #   runs-on: ubuntu-latest
+  #   with:
+  #     environment: prod-stable
+  #   needs: 
+  #     - performance-tests
+  #     - ui-tests
