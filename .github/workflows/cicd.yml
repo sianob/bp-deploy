@@ -17,7 +17,7 @@ on:
           - prod-canary
           - prod-stable
       trigger:
-        description: 'Choose environment to deploy to'
+        description: 'Service that requires new release'
         required: false
         type: choice
         options:
