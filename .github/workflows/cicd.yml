@@ -184,6 +184,7 @@ jobs:
 
       - name: Deploy with Helm
         run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
           helm upgrade --install bp-staging ./bp-chart \
             -f ./bp-chart/values-staging.yaml \
             --namespace $(yq e '.namespace' ./bp-chart/values-staging.yaml) \
@@ -281,6 +282,8 @@ jobs:
 
       - name: Deploy with Helm
         run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
           helm upgrade --install bp-prod-canary ./bp-chart \
             -f ./bp-chart/values-prod-canary.yaml \
             --namespace $(yq e '.namespace' ./bp-chart/values-prod-canary.yaml) \
@@ -298,7 +301,7 @@ jobs:
       - name: Update GitHub Release
         run: |
           latest_tag=$(gh release list --repo sianob/bp-deploy --limit 1 --json tagName --jq '.[0].tagName')
-          
+
           gh release edit $latest_tag \
             --repo ${{ github.repository }} \
             --title "Stable Production Version - $latest_tag"

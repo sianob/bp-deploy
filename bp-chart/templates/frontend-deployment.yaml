@@ -7,7 +7,10 @@ metadata:
   labels:
     app: {{ .Values.frontend.name | default "frontend" }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.frontend.replicas | default 1 }}
+  {{- else }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ .Values.frontend.name | default "frontend" }}

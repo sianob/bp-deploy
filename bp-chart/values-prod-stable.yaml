@@ -39,3 +39,10 @@ frontend:
   port: 80
   apiBaseUrl: /api
 
+autoscaling:
+  frontend:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
