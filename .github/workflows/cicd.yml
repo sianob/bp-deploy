@@ -78,6 +78,18 @@ jobs:
       environment: staging
       action: 'create'
 
+  job-debug:
+    needs: iac-staging
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Set kubeconfig secret (staging)
+        run: |
+          echo "${{ needs.iac-staging.result }}"
+          echo "${{ needs.iac-staging }}"
+
+      - name: Verify Kube Context
+        run: kubectl config get-contexts
   staging-deploy:
     environment:
       name: staging
