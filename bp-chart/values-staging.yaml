@@ -41,7 +41,7 @@ frontend:
 
 autoscaling:
   frontend:
-    enabled: true
+    enabled: false
     minReplicas: 10
     maxReplicas: 15
     targetCPUUtilizationPercentage: 70
