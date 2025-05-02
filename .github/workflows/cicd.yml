@@ -83,10 +83,14 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Set kubeconfig secret (staging)
+      - name: Dump job results
         run: |
-          echo "${{ needs.iac-staging.result }}"
-          echo "${{ needs.iac-staging }}"
+          echo "Job Result: ${{ needs.iac-staging.result }}"
+          echo "Job Outputs: ${{ toJson(needs.iac-staging.outputs) }}"
+      - name: Dump GitHub Context
+        run: echo '${{ toJson(github) }}'
+      - name: Dump Needs Context
+        run: echo '${{ toJson(needs) }}'
 
       - name: Verify Kube Context
         run: kubectl config get-contexts
