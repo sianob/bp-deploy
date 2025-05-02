@@ -39,7 +39,7 @@ on:
 
 jobs:
   frontend:
-    if: ${{ github.event.inputs.trigger == 'frontend' || github.event.inputs.trigger == '') }}
+    if: ${{ github.event.inputs.trigger == 'frontend' || github.event.inputs.trigger == '' }}
     uses: sianob/bp-frontend/.github/workflows/frontend-cicd.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
