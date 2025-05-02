@@ -269,11 +269,27 @@ jobs:
             --namespace $(yq e '.namespace' ./bp-chart/values-prod-canary.yaml) \
             --create-namespace
 
-  iac-prod:
+  prod-ready:
+    name: Release Sign-off
     environment:
       name: prod-stable
-      url: https://prod.bp-calculator.com  
-    needs: canary
+      url: https://prod.bp-calculator.com
+    runs-on: ubuntu-latest
+    needs:
+      - canary
+    steps:
+      - name: Update GitHub Release
+        run: |
+          latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          gh release edit $latest_tag \
+            --repo ${{ github.repository }} \
+            --title "Stable Production Version - $latest_tag"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # or GH_PAT if needed
+
+
+  iac-prod:
+    needs: prod-ready
     uses: sianob/bp-iac/.github/workflows/deploy.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -286,10 +302,7 @@ jobs:
       action: 'create'
 
   deploy-prod:
-    environment:
-      name: prod-stable
-      url: https://prod.bp-calculator.com
-    needs: iac-prod
+    needs: prod-ready
     runs-on: ubuntu-latest
     steps:
 
@@ -357,12 +370,3 @@ jobs:
             --zone-name "bp-calculator.com" \
             --record-set-name "$DNS_NAME" \
             --ipv4-address "$(cat ingress-ip.txt)"
-        
-      - name: Update GitHub Release
-        run: |
-          latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
-          gh release edit $latest_tag \
-            --repo ${{ github.repository }} \
-            --title "Stable Production Version - $latest_tag"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # or GH_PAT if needed
