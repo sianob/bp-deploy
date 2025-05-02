@@ -61,11 +61,11 @@ jobs:
   iac-staging:
     needs:
       - frontend
-      - backend
-    if: |
-      (needs.frontend.result == 'success' && needs.backend.result == 'skipped') ||
-      (needs.frontend.result == 'skipped' && needs.backend.result == 'success') ||
-      (needs.frontend.result == 'success' && needs.backend.result == 'success')
+      # - backend
+    # if: |
+    #   (needs.frontend.result == 'success' && needs.backend.result == 'skipped') ||
+    #   (needs.frontend.result == 'skipped' && needs.backend.result == 'success') ||
+    #   (needs.frontend.result == 'success' && needs.backend.result == 'success')
     uses: sianob/bp-iac/.github/workflows/deploy.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -77,22 +77,22 @@ jobs:
       environment: staging
       action: 'create'
 
-  job-debug:
-    needs: iac-staging
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Dump job results
-        run: |
-          echo "Job Result: ${{ needs.iac-staging.result }}"
-          echo "Job Outputs: ${{ toJson(needs.iac-staging.outputs) }}"
-      - name: Dump GitHub Context
-        run: echo '${{ toJson(github) }}'
-      - name: Dump Needs Context
-        run: echo '${{ toJson(needs) }}'
+  # job-debug:
+  #   needs: iac-staging
+  #   runs-on: ubuntu-latest
+  #   if: always()
+  #   steps:
+  #     - name: Dump job results
+  #       run: |
+  #         echo "Job Result: ${{ needs.iac-staging.result }}"
+  #         echo "Job Outputs: ${{ toJson(needs.iac-staging.outputs) }}"
+  #     - name: Dump GitHub Context
+  #       run: echo '${{ toJson(github) }}'
+  #     - name: Dump Needs Context
+  #       run: echo '${{ toJson(needs) }}'
 
-      - name: Verify Kube Context
-        run: kubectl config get-contexts
+  #     - name: Verify Kube Context
+  #       run: kubectl config get-contexts
   
   staging-deploy:
     needs: iac-staging
