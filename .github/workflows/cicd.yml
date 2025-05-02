@@ -94,11 +94,13 @@ jobs:
 
       - name: Verify Kube Context
         run: kubectl config get-contexts
+  
   staging-deploy:
+    needs: iac-staging
+    if: ${{ needs.iac-staging.result == 'success' }}
     environment:
       name: staging
       url: https://staging.bp-calculator.com
-    needs: iac-staging
     runs-on: ubuntu-latest
     steps:
 
