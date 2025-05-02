@@ -59,7 +59,6 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   iac-staging:
-    id: iac-staging
     needs:
       - frontend
       - backend
