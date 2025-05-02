@@ -59,8 +59,14 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   iac:
-    needs: [frontend, backend]
-    if: always() && (needs.frontend.result == 'success' || needs.backend.result == 'success')
+    needs:
+      - frontend
+      - backend
+    if: |
+      always() && 
+      needs.frontend.result == 'success' && needs.backend.result == 'skipped' ||
+      needs.frontend.result == 'skipped' && needs.backend.result == 'success' ||
+      needs.frontend.result == 'success' && needs.backend.result == 'success'
     uses: sianob/bp-iac/.github/workflows/deploy.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
