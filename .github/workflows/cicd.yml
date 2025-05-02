@@ -297,7 +297,8 @@ jobs:
     steps:
       - name: Update GitHub Release
         run: |
-          latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          latest_tag=$(gh release list --repo sianob/bp-deploy --limit 1 --json tagName --jq '.[0].tagName')
+          
           gh release edit $latest_tag \
             --repo ${{ github.repository }} \
             --title "Stable Production Version - $latest_tag"
