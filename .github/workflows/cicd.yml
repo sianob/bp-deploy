@@ -39,7 +39,7 @@ on:
 
 jobs:
   frontend:
-    if: ${{ github.event.inputs.environment == 'staging' && (github.event.inputs.trigger == 'frontend' || github.event.inputs.trigger == '') }}
+    if: ${{ github.event.inputs.trigger == 'frontend' || github.event.inputs.trigger == '') }}
     uses: sianob/bp-frontend/.github/workflows/frontend-cicd.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -49,7 +49,7 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   backend:
-    if: ${{ github.event.inputs.environment == 'staging' && (github.event.inputs.trigger == 'backend' || github.event.inputs.trigger == '') }}
+    if: ${{ github.event.inputs.trigger == 'backend' || github.event.inputs.trigger == '' }}
     uses: sianob/bp-backend/.github/workflows/backend-cicd.yml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
@@ -58,7 +58,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  iac:
+  iac-staging:
     needs:
       - frontend
       - backend
@@ -75,14 +75,14 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
     with:
-      environment: ${{ github.event.inputs.environment == 'staging' && 'staging' || 'prod' }}
+      environment: staging
       action: 'create'
 
   staging-deploy:
     environment:
-      name: ${{ github.event.inputs.environment }}
+      name: staging
       url: https://staging.bp-calculator.com
-    needs: iac
+    needs: iac-staging
     runs-on: ubuntu-latest
     steps:
 
@@ -93,15 +93,8 @@ jobs:
         uses: azure/setup-helm@v4
 
       - name: Set kubeconfig secret (staging)
-        if: github.event.inputs.environment == 'staging'
         run: |
           echo "${{ secrets.KUBECONFIG_STAGING }}" > kubeconfig
-          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
-
-      - name: Set kubeconfig secret (prod)
-        if: github.event.inputs.environment == 'prod-canary' || github.event.inputs.environment == 'prod-stable'
-        run: |
-          echo "${{ secrets.KUBECONFIG_PROD }}" > kubeconfig
           echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
 
       - name: Verify Kube Context
@@ -109,18 +102,18 @@ jobs:
 
       - name: Ensure Namespace exists
         run: |
-          kubectl create namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace $(yq e '.namespace' ./bp-chart/values-staging.yaml) --dry-run=client -o yaml | kubectl apply -f -
 
 
       - name: Create TLS Secret
         run: |
-          kubectl delete secret tls-secret --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) --ignore-not-found
+          kubectl delete secret tls-secret --namespace $(yq e '.namespace' ./bp-chart/values-staging.yaml) --ignore-not-found
           echo "${{ secrets.TLS_CERT_B64 }}" | base64 -d > tls.crt
           echo "${{ secrets.TLS_KEY_B64 }}" | base64 -d > tls.key
           kubectl create secret tls tls-secret \
             --cert=tls.crt \
             --key=tls.key \
-            --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml)
+            --namespace $(yq e '.namespace' ./bp-chart/values-staging.yaml)
 
       - name: Get and bump latest release version
         run: |
@@ -174,9 +167,9 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade --install bp-${{ github.event.inputs.environment }} ./bp-chart \
-            -f ./bp-chart/values-${{ github.event.inputs.environment }}.yaml \
-            --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) \
+          helm upgrade --install bp-staging ./bp-chart \
+            -f ./bp-chart/values-staging.yaml \
+            --namespace $(yq e '.namespace' ./bp-chart/values-staging.yaml) \
             --create-namespace
   
       - name: Get Ingress IP
@@ -194,12 +187,7 @@ jobs:
     
       - name: Update DNS A record
         run: |
-          if [[ "${{ github.event.inputs.environment }}" == "staging" ]]; then
-            DNS_NAME="staging"
-          else
-            DNS_NAME="prod"
-          fi
-
+          DNS_NAME="staging"
           echo "Creating/updating DNS record for $DNS_NAME..."
           az network dns record-set a create \
             --resource-group "rg-monitoring-bp" \
@@ -213,7 +201,6 @@ jobs:
             --ipv4-address "$(cat ingress-ip.txt)"
 
   performance-tests:
-    if: github.event.inputs.environment == 'staging'
     runs-on: ubuntu-latest
     permissions: write-all
     needs: staging-deploy
@@ -233,7 +220,6 @@ jobs:
           ls -la
           docker run -v $GITHUB_WORKSPACE/performance-tests:/opt/ -i grafana/k6 run /opt/k6-staging.js
   ui-tests:
-    if: github.event.inputs.environment == 'staging'
     runs-on: ubuntu-latest
     permissions: write-all
     needs: staging-deploy
@@ -278,16 +264,32 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade --install bp-${{ github.event.inputs.environment }} ./bp-chart \
-            -f ./bp-chart/values-${{ github.event.inputs.environment }}.yaml \
-            --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) \
+          helm upgrade --install bp-prod-canary ./bp-chart \
+            -f ./bp-chart/values-prod-canary.yaml \
+            --namespace $(yq e '.namespace' ./bp-chart/values-prod-canary.yaml) \
             --create-namespace
-  
+
+  iac-prod:
+    environment:
+      name: prod-stable
+      url: https://prod.bp-calculator.com  
+    needs: canary
+    uses: sianob/bp-iac/.github/workflows/deploy.yml@main
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+    with:
+      environment: prod
+      action: 'create'
+
   deploy-prod:
     environment:
       name: prod-stable
       url: https://prod.bp-calculator.com
-    needs: canary
+    needs: iac-prod
     runs-on: ubuntu-latest
     steps:
 
