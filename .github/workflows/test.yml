@@ -38,9 +38,14 @@ jobs:
           BACKEND_NAME=$(echo "$BACKEND_RELEASE" | jq -r .name)
           echo "Frontend: $FRONTEND_NAME"
           echo "Backend: $BACKEND_NAME"
-          ls ./bp-chart
-          yq e -i .image.backend = $BACKEND_NAME ./bp-chart/values-prod-stable.yaml
-          yq e -i .image.frontend = $FRONTEND_NAME ./bp-chart/values-prod-stable.yaml
+          
+          yqbackend=salob79/bp-backend:${BACKEND_NAME} \
+          yq e -i '.image.backend = strenv(yqbackend)' \
+          ./bp-chart/values-prod-stable.yaml
+
+          yqfrontend=salob79/bp-frontend:${FRONTEND_NAME} \
+          yq e -i '.image.frontend = strenv(yqfrontend)' \
+          ./bp-chart/values-prod-stable.yaml
  
       - name: Create Pull Request
         env:
