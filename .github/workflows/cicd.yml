@@ -303,8 +303,8 @@ jobs:
 
       - name: Update image tags
         run: |
-          yq e -i '.image.backend=salob79/bp-backend:${{ needs.staging-deploy.outputs.backend_name }}"' ./bp-chart/values-prod-stable.yaml
-          yq e -i '.image.frontend="salob79/bp-frontend:${{ needs.staging-deploy.outputs.frontend_name }}"' ./bp-chart/values-prod-stable.yaml
+          yq e -i ".image.backend="salob79/bp-backend:\"${{ needs.staging-deploy.outputs.backend_name }}\"" ./bp-chart/values-prod-stable.yaml
+          yq e -i ".image.frontend="salob79/bp-frontend:\"${{ needs.staging-deploy.outputs.frontend_name }}\"" ./bp-chart/values-prod-stable.yaml
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
