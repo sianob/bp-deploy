@@ -313,7 +313,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
           VERSION: ${{ env.VERSION }}
         run: |
-          branch="update-prod-stable-${{ env.VERSION }}"
+          # Generate a random string of length 5
+          random_string=$(head /dev/urandom | tr -dc a-z0-9 | head -c 5)
+          # Create a unique branch name with the random string
+          branch="update-prod-stable-${random_string}"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git checkout -b "$branch"
