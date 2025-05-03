@@ -101,6 +101,9 @@ jobs:
       name: staging
       url: https://staging.bp-calculator.com
     runs-on: ubuntu-latest
+    outputs:
+      backend_name: ${{ steps.set-vars.outputs.backend_name }}
+      frontend_name: ${{ steps.set-vars.outputs.frontend_name }}
     steps:
 
       - name: Checkout code
@@ -161,6 +164,7 @@ jobs:
 
 
       - name: Create GitHub Release
+        id: set-vars
         run: |
           echo "Creating release ${{ env.VERSION }} in sianob/bp-deploy..."
           FRONTEND_RELEASE=$(gh release view -R sianob/bp-frontend --json name,url)
@@ -179,8 +183,8 @@ jobs:
             --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
             --notes-file generated.md
-          echo "FRONTEND_NAME=$FRONTEND_NAME" >> $GITHUB_ENV
-          echo "BACKEND_NAME=$BACKEND_NAME" >> $GITHUB_ENV
+          echo "frontend_name=$FRONTEND_NAME" >> $GITHUB_OUTPUT
+          echo "backend_name=$BACKEND_NAME" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
@@ -298,12 +302,9 @@ jobs:
       #   run: sudo apt-get install -y yq
 
       - name: Update image tags
-        env:
-          BACKEND_NAME: ${{ env.BACKEND_NAME }}
-          FRONTEND_NAME: ${{ env.FRONTEND_NAME }}
         run: |
-          yq e -i '.image.backend=salob79/bp-backend:${{ env.BACKEND_NAME }}"' ./bp-chart/values-prod-stable.yaml
-          yq e -i '.image.frontend="salob79/bp-frontend:${{ env.FRONTEND_NAME }}"' ./bp-chart/values-prod-stable.yaml
+          yq e -i '.image.backend=salob79/bp-backend:${{ needs.staging-deploy.outputs.backend_name }}"' ./bp-chart/values-prod-stable.yaml
+          yq e -i '.image.frontend="salob79/bp-frontend:${{ needs.staging-deploy.outputs.frontend_name }}"' ./bp-chart/values-prod-stable.yaml
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
