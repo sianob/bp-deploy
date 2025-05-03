@@ -67,6 +67,7 @@ jobs:
         run: |
           helm upgrade --install bp-${{ github.event.inputs.environment }} ./bp-chart \
             -f ./bp-chart/values-${{ github.event.inputs.environment }}.yaml \
+            --set image.pullPolicy=Always \
             --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) \
             --create-namespace
   
