@@ -1,0 +1,77 @@
+name: Continuous Integration and Deployment (CI/CD) Workflow
+description: |
+  This workflow deploys the application to the specified environment.
+  It is triggered manually and can be called from other workflows.
+permissions:
+  contents: write  # Grant write permissions for the entire workflow
+# concurrency:
+#   group: ${{ github.workflow }}
+#   cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod-canary
+          - prod-stable
+      trigger:
+        description: 'Service that requires new release'
+        required: false
+        type: choice
+        options:
+          - 
+          - frontend
+          - backend
+
+
+jobs:
+  canary:
+    name: Deploy Canary
+    runs-on: ubuntu-latest
+    environment:
+      name: prod-canary
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: sianob/bp-deploy
+          ref: main     
+
+      - name: Update image tags
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          FRONTEND_RELEASE=$(gh release view -R sianob/bp-frontend --json name)
+          FRONTEND_NAME=$(echo "$FRONTEND_RELEASE" | jq -r .name)
+          BACKEND_RELEASE=$(gh release view -R sianob/bp-backend --json name)
+          BACKEND_NAME=$(echo "$BACKEND_RELEASE" | jq -r .name)
+          echo "Frontend: $FRONTEND_NAME"
+          echo "Backend: $BACKEND_NAME"
+          ls ./bp-chart
+          yq e -i '.image.backend = salob79/bp-backend: + strenv(BACKEND_NAME)' ./bp-chart/values-prod-stable.yaml
+          yq e -i '.image.frontend = salob79/bp-frontend: + strenv(FRONTEND_NAME)' ./bp-chart/values-prod-stable.yaml
+ 
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          VERSION: ${{ env.VERSION }}
+        run: |
+          # Generate a random string of length 5
+          random_string=$(head /dev/urandom | tr -dc a-z0-9 | head -c 5)
+          # Create a unique branch name with the random string
+          branch="update-prod-stable-${random_string}"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -b "$branch"
+          git add bp-chart/values-prod-stable.yaml
+          git commit -m "Update image tags for prod-stable"
+          git push origin "$branch"
+          gh pr create --title "Update prod-stable image tags" \
+            --body "This PR updates image tags for frontend/backend in prod-stable." \
+            --base main --head "$branch"
