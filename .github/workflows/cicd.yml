@@ -295,12 +295,16 @@ jobs:
       #   run: sudo apt-get install -y yq
 
       - name: Update image tags
+        env:
+          BACKEND_NAME: ${{ env.BACKEND_NAME }}
+          FRONTEND_NAME: ${{ env.FRONTEND_NAME }}
         run: |
           yq e -i '.image.backend=salob79/bp-backend:${{ env.BACKEND_NAME }}"' ./bp-chart/values-prod-stable.yaml
           yq e -i '.image.frontend="salob79/bp-frontend:${{ env.FRONTEND_NAME }}"' ./bp-chart/values-prod-stable.yaml
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          VERSION: ${{ env.VERSION }}
         run: |
           branch="update-prod-stable-${{ env.VERSION }}"
           git config user.name "github-actions"
