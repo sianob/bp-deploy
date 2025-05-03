@@ -190,6 +190,8 @@ jobs:
             --set image.pullPolicy=Always \
             --namespace $(yq e '.namespace' ./bp-chart/values-staging.yaml) \
             --create-namespace
+          kubectl rollout restart deployment frontend  -n bp-staging
+
   
       - name: Get Ingress IP
         run: |
@@ -293,6 +295,8 @@ jobs:
             --set image.pullPolicy=Always \
             --namespace $(yq e '.namespace' ./bp-chart/values-prod-canary.yaml) \
             --create-namespace
+          kubectl rollout restart deployment frontend -n bp-prod
+
       # yq pre-installed
       # - name: Install yq
       #   run: sudo apt-get install -y yq
@@ -414,6 +418,8 @@ jobs:
             --set image.pullPolicy=Always \
             --namespace $(yq e '.namespace' ./bp-chart/values-prod-stable.yaml) \
             --create-namespace
+          kubectl rollout restart deployment frontend  -n bp-prod 
+
   
       - name: Get Ingress IP
         run: |

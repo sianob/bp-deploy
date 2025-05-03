@@ -70,7 +70,8 @@ jobs:
             --set image.pullPolicy=Always \
             --namespace $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) \
             --create-namespace
-  
+          kubectl rollout restart deployment frontend  -n $(yq e '.namespace' ./bp-chart/values-${{ github.event.inputs.environment }}.yaml) 
+
       - name: Get Ingress IP
         run: |
           kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > ingress-ip.txt
