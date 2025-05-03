@@ -9,24 +9,9 @@ permissions:
 #   cancel-in-progress: false
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Choose environment to deploy to'
-        required: true
-        type: choice
-        options:
-          - staging
-          - prod-canary
-          - prod-stable
-      trigger:
-        description: 'Service that requires new release'
-        required: false
-        type: choice
-        options:
-          - 
-          - frontend
-          - backend
+  push:
+    branches:
+      - main
 
 
 jobs:
@@ -54,8 +39,8 @@ jobs:
           echo "Frontend: $FRONTEND_NAME"
           echo "Backend: $BACKEND_NAME"
           ls ./bp-chart
-          yq e -i ".image.backend = strenv(BACKEND_NAME)" ./bp-chart/values-prod-stable.yaml
-          yq e -i ".image.frontend = strenv(FRONTEND_NAME)" ./bp-chart/values-prod-stable.yaml
+          yq e -i .image.backend = strenv(BACKEND_NAME) ./bp-chart/values-prod-stable.yaml
+          yq e -i .image.frontend = strenv(FRONTEND_NAME) ./bp-chart/values-prod-stable.yaml
  
       - name: Create Pull Request
         env:
