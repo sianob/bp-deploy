@@ -101,9 +101,6 @@ jobs:
       name: staging
       url: https://staging.bp-calculator.com
     runs-on: ubuntu-latest
-    outputs:
-      backend_name: ${{ steps.set-vars.outputs.backend_name }}
-      frontend_name: ${{ steps.set-vars.outputs.frontend_name }}
     steps:
 
       - name: Checkout code
@@ -164,7 +161,6 @@ jobs:
 
 
       - name: Create GitHub Release
-        id: set-vars
         run: |
           echo "Creating release ${{ env.VERSION }} in sianob/bp-deploy..."
           FRONTEND_RELEASE=$(gh release view -R sianob/bp-frontend --json name,url)
@@ -183,8 +179,6 @@ jobs:
             --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
             --notes-file generated.md
-          echo "frontend_name=$FRONTEND_NAME" >> "$GITHUB_OUTPUT"
-          echo "backend_name=$BACKEND_NAME" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
@@ -306,7 +300,10 @@ jobs:
           BACKEND_NAME: ${{needs.staging-deploy.outputs.backend_name}}
           FRONTEND_NAME: ${{needs.staging-deploy.outputs.frontend_name}}
         run: |
-          echo ${{ needs.staging-deploy.outputs }}
+          FRONTEND_RELEASE=$(gh release view -R sianob/bp-frontend --json name)
+          FRONTEND_NAME=$(echo "$FRONTEND_RELEASE" | jq -r .name)
+          BACKEND_RELEASE=$(gh release view -R sianob/bp-backend --json name)
+          BACKEND_NAME=$(echo "$BACKEND_RELEASE" | jq -r .name)
           yq e -i ".image.backend="salob79/bp-backend:\"$BACKEND_NAME\"" ./bp-chart/values-prod-stable.yaml
           yq e -i ".image.frontend="salob79/bp-frontend:\"$FRONTEND_NAME\"" ./bp-chart/values-prod-stable.yaml
       - name: Create Pull Request
