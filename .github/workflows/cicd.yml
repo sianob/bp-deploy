@@ -297,7 +297,36 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - canary
+
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}  # Ensure PAT has `repo` scope
+
+      - name: Install yq
+        run: sudo apt-get install -y yq
+
+      - name: Update image tags
+        run: |
+          yq e '.image.backend = "salob79/bp-backend:${{ env.VERSION }}"' -i ./bp-chart/values-prod-stable.yaml
+          yq e '.image.frontend = "salob79/bp-frontend:${{ env.VERSION }}"' -i ./bp-chart/values-prod-stable.yaml
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          branch="update-prod-stable-${{ env.VERSION }}"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -b "$branch"
+          git add bp-chart/values-prod-stable.yaml
+          git commit -m "Update image tags for prod-stable to ${{ env.VERSION }}"
+          git push origin "$branch"
+          gh pr create --title "Update prod-stable image tags to ${{ env.VERSION }}" \
+            --body "This PR updates image tags for frontend/backend in prod-stable." \
+            --base main --head "$branch"
+
       - name: Update GitHub Release
         run: |
           latest_tag=$(gh release list --repo sianob/bp-deploy --limit 1 --json tagName --jq '.[0].tagName')
