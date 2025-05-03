@@ -1,4 +1,4 @@
-name: Continuous Integration and Deployment (CI/CD) Workflow
+name: Test Auotomated PR Creation
 description: |
   This workflow deploys the application to the specified environment.
   It is triggered manually and can be called from other workflows.
