@@ -302,9 +302,12 @@ jobs:
       #   run: sudo apt-get install -y yq
 
       - name: Update image tags
+      - env:
+          BACKEND_NAME: ${{needs.staging-deploy.outputs.backend_name}}
+          FRONTEND_NAME: ${{needs.staging-deploy.outputs.frontend_name}}
         run: |
-          yq e -i ".image.backend="salob79/bp-backend:\"${{ needs.staging-deploy.outputs.backend_name }}\"" ./bp-chart/values-prod-stable.yaml
-          yq e -i ".image.frontend="salob79/bp-frontend:\"${{ needs.staging-deploy.outputs.frontend_name }}\"" ./bp-chart/values-prod-stable.yaml
+          yq e -i ".image.backend="salob79/bp-backend:\"$BACKEND_NAME\"" ./bp-chart/values-prod-stable.yaml
+          yq e -i ".image.frontend="salob79/bp-frontend:\"$FRONTEND_NAME\"" ./bp-chart/values-prod-stable.yaml
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
