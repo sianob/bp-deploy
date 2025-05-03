@@ -179,8 +179,8 @@ jobs:
             --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
             --notes-file generated.md
-          echo "FRONTEND_RELEASE=$FRONTEND_NAME" >> $GITHUB_ENV
-          echo "BACKEND_RELEASE=$BACKEND_NAME" >> $GITHUB_ENV
+          echo "FRONTEND_NAME=$FRONTEND_NAME" >> $GITHUB_ENV
+          echo "BACKEND_NAME=$BACKEND_NAME" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
@@ -296,8 +296,8 @@ jobs:
 
       - name: Update image tags
         run: |
-          yq e -i '.image.backend = "salob79/bp-backend:${{ env.BACKEND_RELEASE }}"' ./bp-chart/values-prod-stable.yaml
-          yq e -i '.image.frontend = "salob79/bp-frontend:${{ env.FRONTEND_RELEASE }}"' ./bp-chart/values-prod-stable.yaml
+          yq e -i '.image.backend=salob79/bp-backend:${{ env.BACKEND_NAME }}"' ./bp-chart/values-prod-stable.yaml
+          yq e -i '.image.frontend="salob79/bp-frontend:${{ env.FRONTEND_NAME }}"' ./bp-chart/values-prod-stable.yaml
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
