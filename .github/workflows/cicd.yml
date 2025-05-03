@@ -183,8 +183,8 @@ jobs:
             --repo "sianob/bp-deploy" \
             --title "${{ env.VERSION }}" \
             --notes-file generated.md
-          echo "frontend_name=$FRONTEND_NAME" >> $GITHUB_OUTPUT
-          echo "backend_name=$BACKEND_NAME" >> $GITHUB_OUTPUT
+          echo "frontend_name=$FRONTEND_NAME" >> "$GITHUB_OUTPUT"
+          echo "backend_name=$BACKEND_NAME" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
@@ -306,6 +306,7 @@ jobs:
           BACKEND_NAME: ${{needs.staging-deploy.outputs.backend_name}}
           FRONTEND_NAME: ${{needs.staging-deploy.outputs.frontend_name}}
         run: |
+          echo ${{ needs.staging-deploy.outputs }}
           yq e -i ".image.backend="salob79/bp-backend:\"$BACKEND_NAME\"" ./bp-chart/values-prod-stable.yaml
           yq e -i ".image.frontend="salob79/bp-frontend:\"$FRONTEND_NAME\"" ./bp-chart/values-prod-stable.yaml
       - name: Create Pull Request
