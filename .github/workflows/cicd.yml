@@ -303,8 +303,11 @@ jobs:
           FRONTEND_NAME=$(echo "$FRONTEND_RELEASE" | jq -r .name)
           BACKEND_RELEASE=$(gh release view -R sianob/bp-backend --json name)
           BACKEND_NAME=$(echo "$BACKEND_RELEASE" | jq -r .name)
-          yq e -i ".image.backend="salob79/bp-backend:\"$BACKEND_NAME\"" ./bp-chart/values-prod-stable.yaml
-          yq e -i ".image.frontend="salob79/bp-frontend:\"$FRONTEND_NAME\"" ./bp-chart/values-prod-stable.yaml
+          echo "Frontend: $FRONTEND_NAME"
+          echo "Backend: $BACKEND_NAME"
+          ls ./bp-chart
+          yq e -i ".image.backend="salob79/bp-backend:$BACKEND_NAME" ./bp-chart/values-prod-stable.yaml
+          yq e -i ".image.frontend="salob79/bp-frontend:$FRONTEND_NAME" ./bp-chart/values-prod-stable.yaml
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
