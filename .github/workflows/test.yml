@@ -39,8 +39,8 @@ jobs:
           echo "Frontend: $FRONTEND_NAME"
           echo "Backend: $BACKEND_NAME"
           ls ./bp-chart
-          yq e -i .image.backend = strenv(BACKEND_NAME) ./bp-chart/values-prod-stable.yaml
-          yq e -i .image.frontend = strenv(FRONTEND_NAME) ./bp-chart/values-prod-stable.yaml
+          yq e -i .image.backend = $BACKEND_NAME ./bp-chart/values-prod-stable.yaml
+          yq e -i .image.frontend = $FRONTEND_NAME ./bp-chart/values-prod-stable.yaml
  
       - name: Create Pull Request
         env:
