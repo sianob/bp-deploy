@@ -270,6 +270,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: sianob/bp-deploy
+          ref: main     
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -359,6 +362,7 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
+
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
