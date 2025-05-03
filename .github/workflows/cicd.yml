@@ -297,8 +297,7 @@ jobs:
 
       - name: Update image tags
         env:
-          BACKEND_NAME: ${{needs.staging-deploy.outputs.backend_name}}
-          FRONTEND_NAME: ${{needs.staging-deploy.outputs.frontend_name}}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           FRONTEND_RELEASE=$(gh release view -R sianob/bp-frontend --json name)
           FRONTEND_NAME=$(echo "$FRONTEND_RELEASE" | jq -r .name)
